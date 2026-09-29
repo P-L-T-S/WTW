@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Wtw.Api/Wtw.Api.csproj" />
+    <Project Path="src/Wtw.Application/Wtw.Application.csproj" />
+    <Project Path="src/Wtw.Domain/Wtw.Domain.csproj" />
+    <Project Path="src/Wtw.Infrastructure/Wtw.Infrastructure.csproj" />
+  </Folder>
+</Solution>

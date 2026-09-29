@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Wtw.Application\Wtw.Application.csproj" />
+    <ProjectReference Include="..\Wtw.Domain\Wtw.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
