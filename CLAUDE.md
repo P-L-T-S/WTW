@@ -68,8 +68,10 @@ Regra de dependência: **Domain não referencia outros projetos** (única depend
 dotnet build Wtw.slnx
 dotnet test Wtw.slnx
 dotnet run --project src/Wtw.Api
-dotnet ef migrations add <Nome> --project src/Wtw.Infrastructure --startup-project src/Wtw.Api
-docker compose up -d
+docker compose up -d                                   # SQL Server local (localhost,1433)
+dotnet ef migrations add <Nome> --project src/Wtw.Infrastructure --output-dir Persistence/Migrations
+dotnet ef database update --project src/Wtw.Infrastructure
+dotnet ef migrations script --idempotent --project src/Wtw.Infrastructure -o scripts/create-database.sql
 cd web && npm install && npm start
 ```
 

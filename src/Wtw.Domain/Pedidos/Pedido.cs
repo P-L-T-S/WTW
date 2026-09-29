@@ -180,7 +180,7 @@ public sealed class Pedido : AggregateRoot
 
         if (itemExistente is null)
         {
-            _itens.Add(new ItemPedido(produto, quantidade));
+            _itens.Add(new ItemPedido(Id, produto, quantidade));
         }
         else
         {

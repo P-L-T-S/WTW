@@ -60,13 +60,7 @@ Os services retornam `Result`. Os controllers convertem a falha em resposta HTTP
 
 O `ProblemDetails` inclui `extensions.codigo = Erro.Metodo`, para o front identificar o erro sem depender do texto.
 
-Exceções são tratadas pelo `GlobalExceptionHandler`:
-
-| Exceção | Status |
-|---------|--------|
-| `FalhaEventoDominioException` | conforme o `Erro.Tipo` que ela carrega (normalmente 422) |
-| `DbUpdateConcurrencyException` | 409, `detail: "O registro foi alterado por outra operação. Tente novamente."` |
-| Outras | 500, mensagem genérica; detalhes apenas em log (e em `Development`) |
+Falhas de handler de evento (ex.: estoque insuficiente na confirmação) e conflitos de concorrência já chegam como `Result` vindo do `IUnitOfWork` (ver [03-infrastructure.md](03-infrastructure.md)). O `GlobalExceptionHandler` só cuida de exceções inesperadas: responde 500 com mensagem genérica e deixa os detalhes apenas no log (e na resposta, em `Development`).
 
 Exemplo:
 

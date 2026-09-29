@@ -127,7 +127,7 @@ Toda operação bem-sucedida que altera o pedido atualiza `AtualizadoEmUtc`.
 
 ### `ItemPedido` (entidade filha)
 
-`ProdutoId`, `NomeProduto`, `PrecoUnitario`, `Quantidade`, `Subtotal`. O construtor e `AlterarQuantidade` são `internal`: só o agregado `Pedido` modifica seus itens.
+`PedidoId`, `ProdutoId`, `NomeProduto`, `PrecoUnitario`, `Quantidade`, `Subtotal`. O construtor e `AlterarQuantidade` são `internal`: só o agregado `Pedido` modifica seus itens.
 
 ### `StatusPedido`
 
@@ -172,6 +172,6 @@ public interface IPedidoRepository
 
 public interface IUnitOfWork
 {
-    Task SaveChangesAsync(CancellationToken ct = default);   // despacha eventos e persiste em uma transação
+    Task<Result> SaveChangesAsync(CancellationToken ct = default);   // publica eventos e persiste atomicamente; falha em handler ou concorrência → Result.Fail
 }
 ```

@@ -69,7 +69,9 @@ if (pedido is null) return Result<PedidoDto>.Fail(ApplicationErros.NaoEncontrado
 var resultado = pedido.Confirmar();
 if (resultado.IsFailure) return Result<PedidoDto>.Fail(resultado.Erro!);
 
-await unitOfWork.SaveChangesAsync(ct);
+var persistencia = await unitOfWork.SaveChangesAsync(ct);   // falha de handler de evento ou concorrência
+if (persistencia.IsFailure) return Result<PedidoDto>.Fail(persistencia.Erro!);
+
 return Result<PedidoDto>.Ok(pedido.ToDto());
 ```
 
@@ -99,7 +101,7 @@ internal sealed class ReporEstoqueAoCancelarPedidoHandler(IProdutoRepository pro
 ```
 
 - Handlers **não chamam `SaveChanges`**: alteram agregados rastreados, e o `UnitOfWork` persiste tudo junto.
-- Como `INotificationHandler` retorna `Task`, a única forma de abortar a transação é lançar exceção. `FalhaEventoDominioException` carrega o `Erro` original. O `UnitOfWork` faz rollback e a exceção chega à API, que usa o `Erro.Tipo` para responder (422). É o único ponto em que uma regra de negócio vira exceção.
+- Como `INotificationHandler` retorna `Task`, a única forma de abortar a operação é lançar exceção. A `FalhaEventoDominioException` (já criada em `Comum/`) carrega o `Erro` original. O `UnitOfWork` a captura, descarta as alterações e devolve `Result.Fail(erro)`, então **a exceção não sai da camada de infraestrutura**.
 
 Registro em `AddApplication()`: `AddMediatR(cfg => cfg.RegisterServicesFromAssembly(...))`, `AddValidatorsFromAssembly(...)` e os services.
 

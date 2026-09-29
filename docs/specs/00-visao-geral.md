@@ -14,7 +14,7 @@ Sistema de **Gestão de Pedidos** para uma pequena loja, com back-end .NET em DD
   - valor total calculado automaticamente;
   - listagem com ações de confirmar, cancelar e finalizar.
 
-## Regras de negócio (do enunciado)
+## Regras de negócio (definidas pela WTW)
 
 | # | Regra |
 |---|-------|
@@ -24,7 +24,7 @@ Sistema de **Gestão de Pedidos** para uma pequena loja, com back-end .NET em DD
 | RN04 | Ao cancelar um pedido já confirmado, o estoque é restaurado. |
 | RN05 | Um pedido finalizado não pode mais ser alterado ou cancelado. |
 
-## Regras complementares (decisões do candidato)
+## Regras complementares (decisões técnicas)
 
 | # | Regra |
 |---|-------|
