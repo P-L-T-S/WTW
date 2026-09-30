@@ -132,7 +132,18 @@ dotnet ef database update --project src/Wtw.Infrastructure
 
 ## Testes
 
-_(a definir)_
+```bash
+dotnet test
+```
+
+Na raiz do repositório, roda os **97 testes** (xUnit v3 + Shouldly) em poucos segundos, sem banco nem Docker:
+
+| Projeto | Testes | O que cobre |
+|---------|--------|-------------|
+| `tests/Wtw.Domain.Tests` | 72 | Value Objects; estoque do `Produto`; todas as regras do `Pedido` (RN01–RN05 e RC01–RC08), incluindo a matriz completa de transições de status e os Domain Events disparados |
+| `tests/Wtw.Application.Tests` | 25 | Handlers de command e query com repositórios em memória; handlers dos Domain Events de estoque; validators com as mensagens do domínio |
+
+Os nomes dos testes trazem a regra que cobrem (ex.: `Cancelar_PedidoCriado_NaoDeveDispararEvento_RN04`). O projeto usa a Microsoft.Testing.Platform, ativada no `global.json`, que é o runner padrão do `dotnet test` no .NET 10 com xUnit v3.
 
 ## Regras de negócio
 
@@ -170,4 +181,11 @@ As regras complementares definidas durante o desenvolvimento estão em [`docs/sp
 
 ## Melhorias futuras
 
-_(a definir)_
+- **Testes de integração:** `WebApplicationFactory` + Testcontainers (SQL Server) cobrindo o fluxo HTTP completo e o `UnitOfWork` real (publicação de eventos, rollback e concorrência). Hoje esse fluxo foi validado manualmente contra SQL Server real.
+- **Testes do front-end:** services com `HttpTestingController`; `RascunhoPedido` e `acoesDisponiveis`, que são puros e fáceis de testar.
+- **Edição de itens pela API e pela tela:** o domínio já tem `AdicionarItem`, `AlterarQuantidadeItem` e `RemoverItem` (com as regras RC02, RC04 e RC08); falta expor commands, endpoints e tela.
+- **Concorrência entre requisições:** devolver o `RowVersion` como `ETag` e exigir `If-Match` nas alterações, para detectar também edições concorrentes feitas em telas abertas há mais tempo (hoje a proteção vale dentro de cada requisição).
+- **Outbox para Domain Events:** se o estoque passar a ser outro serviço, trocar a publicação na mesma transação por um outbox com processamento assíncrono.
+- **Modelo de leitura separado:** projeções diretas (`Select` no `DbContext` ou Dapper) nas queries, sem materializar agregados.
+- **Paginação e ordenação** nas listagens (D3), autenticação (D2) e cadastro de clientes (D1).
+- **Containers da API e do front** no `docker-compose.yml`, para subir tudo com um comando.

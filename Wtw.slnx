@@ -5,4 +5,8 @@
     <Project Path="src/Wtw.Domain/Wtw.Domain.csproj" />
     <Project Path="src/Wtw.Infrastructure/Wtw.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Wtw.Application.Tests/Wtw.Application.Tests.csproj" />
+    <Project Path="tests/Wtw.Domain.Tests/Wtw.Domain.Tests.csproj" />
+  </Folder>
 </Solution>
