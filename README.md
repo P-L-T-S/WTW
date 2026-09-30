@@ -3,9 +3,7 @@
 Sistema de gestão de pedidos para uma pequena loja, desenvolvido como teste técnico para a vaga de **Desenvolvedor(a) Pleno Full-Stack (C# + Angular)** da WTW.
 
 - **Back-end:** .NET 10, arquitetura em camadas com DDD, EF Core, SQL Server
-- **Front-end:** Angular, Bootstrap
-
-> 🚧 Em desenvolvimento. As seções marcadas com _(a definir)_ serão completadas conforme as etapas forem implementadas.
+- **Front-end:** Angular 22 (standalone, zoneless, signals), Bootstrap 5
 
 ## Funcionalidades
 
@@ -34,7 +32,7 @@ A documentação detalhada de cada camada está em [`docs/specs/`](docs/specs/).
 ## Pré-requisitos
 
 - [.NET SDK 10](https://dotnet.microsoft.com/download)
-- [Node.js](https://nodejs.org/) (LTS) e npm
+- [Node.js](https://nodejs.org/) LTS (22.22+ ou 24.15+) e npm
 - [Docker](https://www.docker.com/) (para o SQL Server) — ou uma instância própria de SQL Server
 - (opcional) `dotnet-ef`: `dotnet tool install --global dotnet-ef`
 
@@ -79,7 +77,22 @@ curl -X POST http://localhost:5000/api/pedidos/{id}/confirmar
 
 ### 3. Front-end
 
-_(a definir)_
+Requer Node.js 22.22+ ou 24.15+ (LTS). Com a API rodando em `http://localhost:5000`:
+
+```bash
+cd web
+npm install
+npm start
+```
+
+Acesse `http://localhost:4200`. O endereço da API fica em `web/src/environments/environment.ts`.
+
+Roteiro rápido para ver as regras de negócio pela interface:
+
+1. **Pedidos → Novo pedido**: escolha um cliente, adicione 2 × Webcam HD (estoque 3) e tente adicionar mais 2. O aviso local de estoque aparece.
+2. Crie o pedido e clique em **Confirmar**: o estoque da webcam cai para 1.
+3. Crie outro pedido com 1 webcam, depois um terceiro com 1 webcam, e confirme os dois. O segundo é recusado pela API com a mensagem do domínio ("Estoque insuficiente…") e uma referência para localizar a requisição no log.
+4. **Cancele** o pedido confirmado: o estoque é restaurado. **Finalize** outro: ele deixa de ter ações.
 
 ## Banco de dados: criação e carga inicial
 
@@ -152,6 +165,8 @@ As regras complementares definidas durante o desenvolvimento estão em [`docs/sp
 - **Datas sempre em UTC:** a leitura do EF marca as datas como UTC, e a API as serializa com `Z`.
 - **Logs estruturados com Serilog:** console legível para desenvolvimento e arquivo em JSON compacto (`src/Wtw.Api/logs/`) com uma linha por requisição HTTP e uma por command/query (duração, tipo e código do erro). O `` de cada evento é o mesmo `traceId` devolvido no `ProblemDetails`, o que liga um erro visto no front ao log. A Application loga via `ILogger`, sem conhecer o Serilog.
 - **Transições de status como ações** (`POST /pedidos/{id}/confirmar`), por serem comandos de negócio com efeitos colaterais.
+- **Front-end zoneless com signals:** Angular 22 sem `zone.js`. Leituras via `rxResource` (estado de carregamento, erro e recarga prontos), estado local em signals e `computed`. Regras de apresentação, como as ações disponíveis por status, ficam em funções puras em `shared/`, e o pedido em montagem fica numa classe `RascunhoPedido`, fora do componente.
+- **Erros tratados num só lugar no front:** um interceptor converte o `ProblemDetails` da API e exibe a notificação. Formulários só aplicam os erros 400 nos próprios campos. A notificação mostra o trace id da requisição, o mesmo do log da API.
 
 ## Melhorias futuras
 

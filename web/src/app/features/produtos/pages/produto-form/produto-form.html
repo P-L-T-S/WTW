@@ -1,0 +1,45 @@
+<h1 class="h3 mb-3">{{ id() ? 'Editar produto' : 'Novo produto' }}</h1>
+
+<form class="card card-body" [formGroup]="form" (ngSubmit)="salvar()" novalidate>
+  @for (erro of errosGerais(); track erro) {
+    <div class="alert alert-danger">{{ erro }}</div>
+  }
+
+  <div class="mb-3">
+    <label class="form-label" for="nome">Nome</label>
+    <input id="nome" class="form-control" formControlName="nome"
+           [class.is-invalid]="mensagemDeErro(form.controls.nome)" />
+    <div class="invalid-feedback">{{ mensagemDeErro(form.controls.nome) }}</div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label" for="descricao">Descrição</label>
+    <textarea id="descricao" class="form-control" rows="3" formControlName="descricao"
+              [class.is-invalid]="mensagemDeErro(form.controls.descricao)"></textarea>
+    <div class="invalid-feedback">{{ mensagemDeErro(form.controls.descricao) }}</div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-6 mb-3">
+      <label class="form-label" for="preco">Preço (R$)</label>
+      <input id="preco" type="number" step="0.01" min="0" class="form-control" formControlName="preco"
+             [class.is-invalid]="mensagemDeErro(form.controls.preco)" />
+      <div class="invalid-feedback">{{ mensagemDeErro(form.controls.preco) }}</div>
+    </div>
+
+    <div class="col-sm-6 mb-3">
+      <label class="form-label" for="quantidadeEstoque">Quantidade em estoque</label>
+      <input id="quantidadeEstoque" type="number" step="1" min="0" class="form-control"
+             formControlName="quantidadeEstoque"
+             [class.is-invalid]="mensagemDeErro(form.controls.quantidadeEstoque)" />
+      <div class="invalid-feedback">{{ mensagemDeErro(form.controls.quantidadeEstoque) }}</div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary" [disabled]="salvando()">
+      {{ salvando() ? 'Salvando...' : 'Salvar' }}
+    </button>
+    <a class="btn btn-outline-secondary" routerLink="/produtos">Voltar</a>
+  </div>
+</form>

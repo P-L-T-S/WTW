@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Wtw.Application.Abstractions.Messaging;
 using Wtw.Application.Produtos.Dtos;
 using Wtw.Domain.Produtos;

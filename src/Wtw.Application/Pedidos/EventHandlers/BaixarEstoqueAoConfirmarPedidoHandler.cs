@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Wtw.Application.Comum;
 using Wtw.Domain.Pedidos.Eventos;
 using Wtw.Domain.Produtos;

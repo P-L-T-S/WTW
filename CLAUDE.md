@@ -23,8 +23,8 @@ As specs são a fonte da verdade. Se uma implementação precisar divergir, **at
 
 ## Stack
 
-- Back-end: **.NET 10** (C#), EF Core 10, SQL Server, MediatR 12.5 (CQRS e Domain Events), FluentValidation, Serilog, xUnit
-- Front-end: **Angular** (versão atual, standalone components), Bootstrap
+- Back-end: **.NET 10** (C#), EF Core 10, SQL Server, MediatR 12.5 (CQRS e Domain Events), FluentValidation, Serilog, xUnit v3 + Shouldly
+- Front-end: **Angular 22** (standalone components, zoneless, signals, `rxResource`), Bootstrap 5
 - Banco local via **Docker Compose** (SQL Server)
 
 ## Estrutura alvo
@@ -32,6 +32,7 @@ As specs são a fonte da verdade. Se uma implementação precisar divergir, **at
 ```
 Wtw.slnx
 Directory.Build.props
+global.json             # ativa a Microsoft.Testing.Platform no dotnet test
 src/
   Wtw.Domain/           # sem dependências externas
   Wtw.Application/      # depende de Domain
@@ -63,13 +64,14 @@ Regra de dependência: **Domain não referencia outros projetos** (única depend
 - Métodos curtos, uma responsabilidade por classe, injeção por construtor (primary constructors em handlers).
 - Sem comentários óbvios; comente apenas o "porquê" de decisões não evidentes.
 - Métodos assíncronos com sufixo `Async` e `CancellationToken` propagado.
+- **Front-end**: HTTP só em services; leituras com `rxResource`, mutações com `subscribe` + signals de estado; regras de apresentação (ações por status) em `shared/`, fora de templates; erros tratados pelo `erroInterceptor` (formulários só aplicam os erros de campo).
 - Logs: use `ILogger<T>` com *message templates* (`logger.LogInformation("{Requisicao} concluída", nome)`), nunca interpolação de string, para manter as propriedades estruturadas. Só a API conhece o Serilog. Não registre dados enviados pelo usuário (valores de campos).
 
 ## Comandos
 
 ```bash
 dotnet build Wtw.slnx
-dotnet test Wtw.slnx
+dotnet test                                            # raiz; ou dotnet test --solution Wtw.slnx
 dotnet run --project src/Wtw.Api
 docker compose up -d                                   # SQL Server local (localhost,1433)
 dotnet ef migrations add <Nome> --project src/Wtw.Infrastructure --output-dir Persistence/Migrations

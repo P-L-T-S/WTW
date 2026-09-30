@@ -1,0 +1,46 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Produtos</h1>
+  <a class="btn btn-primary" routerLink="novo">Novo produto</a>
+</div>
+
+@if (produtos.isLoading()) {
+  <p class="text-muted">Carregando produtos...</p>
+} @else if (produtos.error()) {
+  <div class="alert alert-danger">
+    Não foi possível carregar os produtos.
+    <button type="button" class="btn btn-link p-0 align-baseline" (click)="produtos.reload()">Tentar novamente</button>
+  </div>
+} @else {
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Descrição</th>
+          <th class="text-end">Preço</th>
+          <th class="text-end">Estoque</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (produto of produtos.value(); track produto.id) {
+          <tr>
+            <td>{{ produto.nome }}</td>
+            <td class="text-muted">{{ produto.descricao || '—' }}</td>
+            <td class="text-end">{{ produto.preco | currency }}</td>
+            <td class="text-end">
+              <span [class.text-danger]="produto.quantidadeEstoque === 0">{{ produto.quantidadeEstoque }}</span>
+            </td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-secondary" [routerLink]="[produto.id, 'editar']">Editar</a>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">Nenhum produto cadastrado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

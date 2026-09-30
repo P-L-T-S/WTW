@@ -59,9 +59,9 @@ internal sealed class CriarPedidoCommandHandler(
         IReadOnlyList<ItemPedidoCommand> itens, CancellationToken cancellationToken)
     {
         var encontrados = await produtos.ObterPorIdsAsync(itens.Select(item => item.ProdutoId), cancellationToken);
-        var porId = encontrados.ToDictionary(produto => produto.Id);
+        var encontradosPorId = encontrados.ToDictionary(produto => produto.Id);
 
-        var inexistente = itens.FirstOrDefault(item => !porId.ContainsKey(item.ProdutoId));
+        var inexistente = itens.FirstOrDefault(item => !encontradosPorId.ContainsKey(item.ProdutoId));
 
         if (inexistente is not null)
         {
@@ -70,6 +70,6 @@ internal sealed class CriarPedidoCommandHandler(
         }
 
         return Result<IReadOnlyCollection<(Produto, int)>>.Ok(
-            itens.Select(item => (porId[item.ProdutoId], item.Quantidade)).ToList());
+            itens.Select(item => (encontradosPorId[item.ProdutoId], item.Quantidade)).ToList());
     }
 }
