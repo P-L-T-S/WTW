@@ -158,7 +158,7 @@ public interface IProdutoRepository
 
 public interface IClienteRepository
 {
-    Task<bool> ExisteAsync(Guid id, CancellationToken ct = default);
+    Task<Cliente?> ObterPorIdAsync(Guid id, CancellationToken ct = default);
     Task<IReadOnlyList<Cliente>> ObterPorIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
     Task<IReadOnlyList<Cliente>> ListarAsync(CancellationToken ct = default);
 }

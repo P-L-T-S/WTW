@@ -35,7 +35,9 @@ Foco nos handlers de evento e orquestração, com repositórios fake em memória
 - `BaixarEstoqueAoConfirmarPedidoHandler` baixa o estoque de cada produto.
 - Handler com estoque insuficiente lança `FalhaEventoDominioException` com o `Erro` do domínio.
 - `ReporEstoqueAoCancelarPedidoHandler` repõe estoque.
-- `PedidoService.CriarAsync` com produto inexistente → falha com `Erro.Tipo = NaoEncontrado`.
+- `CriarPedidoCommandHandler` com produto inexistente → falha com `Erro.Tipo = NaoEncontrado`.
+- `ConfirmarPedidoCommandHandler` com pedido inexistente → `NaoEncontrado`; com pedido já confirmado → `RegraNegocio`, sem chamar `SaveChangesAsync`.
+- Validators: `CriarPedidoCommandValidator` e `CriarProdutoCommandValidator` reportam todos os campos inválidos com as mensagens do domínio.
 
 ## Integração (desejável, se houver tempo)
 

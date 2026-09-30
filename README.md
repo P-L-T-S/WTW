@@ -19,7 +19,7 @@ Sistema de gestão de pedidos para uma pequena loja, desenvolvido como teste té
 ```
 src/
   Wtw.Domain           Entidades, Value Objects, Agregados, Domain Events, interfaces de repositório
-  Wtw.Application      Casos de uso (services), DTOs, validações, handlers de Domain Events
+  Wtw.Application      CQRS: commands, queries e seus handlers (MediatR), DTOs, validações, handlers de Domain Events
   Wtw.Infrastructure   EF Core, repositórios, UnitOfWork (publica os Domain Events), migrations e seed
   Wtw.Api              Controllers, injeção de dependência, tratamento global de erros
 tests/
@@ -121,7 +121,9 @@ As regras complementares definidas durante o desenvolvimento estão em [`docs/sp
 - **`RowVersion` como shadow property:** a coluna de concorrência existe só no modelo do EF, não nas entidades, porque é mecanismo de persistência e não regra de negócio. Já `ItemPedido.PedidoId` é propriedade do domínio, pois o vínculo do item com seu pedido faz parte do modelo.
 - **Estoque validado duas vezes:** ao adicionar o item (feedback imediato) e ao confirmar (o estoque pode ter mudado nesse intervalo).
 - **Concorrência otimista:** `RowVersion` em produtos e pedidos evita que duas operações simultâneas sobrescrevam uma à outra (ex.: duas confirmações baixando o mesmo estoque). Conflitos retornam HTTP 409.
-- **MediatR apenas para Domain Events:** versão 12.5 (Apache 2.0). O domínio depende só de `MediatR.Contracts`. Os casos de uso ficam em services simples, sem um handler por comando.
+- **CQRS com MediatR:** cada caso de uso é um command (`ICommand`/`ICommandHandler`) ou query (`IQuery`/`IQueryHandler`) com seu próprio handler, organizado em uma pasta por caso de uso. Commands não devolvem dados de leitura (criação devolve só o `Id`), e a API só conhece o `ISender`. MediatR 12.5 (Apache 2.0); o domínio depende só de `MediatR.Contracts`.
+- **Validação explícita no handler, não em pipeline behavior:** um behavior genérico precisaria construir `Result<T>.Fail` via reflexão. Com três commands validados, a chamada explícita é mais simples e visível.
+- **Handler base para transições de status:** confirmar, cancelar e finalizar compartilham `AlterarStatusPedidoCommandHandler<T>`, e cada handler concreto só declara a transição (`=> pedido.Confirmar()`).
 - **Result pattern em vez de exceções:** regras de negócio violadas retornam `Result` com um `Erro` tipado (validação, não encontrado, regra de negócio, conflito), e a API converte esse tipo no status HTTP correspondente.
 - **Erros padronizados em ProblemDetails (RFC 7807):** 400 para validação, 404 para recurso inexistente, 422 para regra de negócio, 409 para conflito de concorrência.
 - **Transições de status como ações** (`POST /pedidos/{id}/confirmar`), por serem comandos de negócio com efeitos colaterais.

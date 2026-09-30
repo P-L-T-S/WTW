@@ -5,8 +5,10 @@ namespace Wtw.Infrastructure.Persistence.Repositories;
 
 internal sealed class ClienteRepository(WtwDbContext context) : IClienteRepository
 {
-    public Task<bool> ExisteAsync(Guid id, CancellationToken cancellationToken = default) =>
-        context.Clientes.AnyAsync(cliente => cliente.Id == id, cancellationToken);
+    public Task<Cliente?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+        context.Clientes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(cliente => cliente.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Cliente>> ObterPorIdsAsync(IEnumerable<Guid> ids,
         CancellationToken cancellationToken = default)

@@ -23,7 +23,7 @@ As specs são a fonte da verdade. Se uma implementação precisar divergir, **at
 
 ## Stack
 
-- Back-end: **.NET 10** (C#), EF Core 10, SQL Server, MediatR 12.5 (apenas Domain Events), FluentValidation, xUnit
+- Back-end: **.NET 10** (C#), EF Core 10, SQL Server, MediatR 12.5 (CQRS e Domain Events), FluentValidation, xUnit
 - Front-end: **Angular** (versão atual, standalone components), Bootstrap
 - Banco local via **Docker Compose** (SQL Server)
 
@@ -58,7 +58,8 @@ Regra de dependência: **Domain não referencia outros projetos** (única depend
 - Violação de regra de negócio → retornar `Result.Fail(XxxErros.Algo)` (Result pattern, sem exceções). Mensagens em português, prontas para o usuário, centralizadas nas classes `XxxErros` de cada área. Exceções só para bugs e falhas de infraestrutura.
 - Value Objects: `readonly record struct` com construtor privado e fábrica `Criar(...)` que retorna `Result<T>`.
 - Domain Events herdam de `DomainEvent`, têm sufixo `DomainEvent` e ficam na pasta `Eventos/` do agregado. Handlers são `INotificationHandler<T>` do MediatR, na Application.
-- Métodos curtos, uma responsabilidade por classe, injeção por construtor (primary constructors são bem-vindos em services/handlers).
+- **CQRS**: cada caso de uso tem uma pasta própria em `Application/<Agregado>/<CasoDeUso>/`, com `XxxCommand`/`XxxQuery`, `XxxCommandHandler`/`XxxQueryHandler` e, se houver entrada a validar, `XxxCommandValidator`. Commands implementam `ICommand` ou `ICommand<TResponse>` (criação devolve só o `Guid`); queries implementam `IQuery<TResponse>`. Handlers e validators são `internal sealed`. A API usa apenas `ISender.Send(...)`.
+- Métodos curtos, uma responsabilidade por classe, injeção por construtor (primary constructors em handlers).
 - Sem comentários óbvios; comente apenas o "porquê" de decisões não evidentes.
 - Métodos assíncronos com sufixo `Async` e `CancellationToken` propagado.
 

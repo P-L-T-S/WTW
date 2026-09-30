@@ -138,7 +138,6 @@ public sealed class Pedido : AggregateRoot
             return Result.Fail(PedidoErros.JaCancelado);
         }
 
-        // Só há estoque a restaurar se ele foi baixado na confirmação.
         if (Status == StatusPedido.Confirmado)
         {
             Disparar(new PedidoCanceladoDomainEvent(Id, ItensMovimentados()));
