@@ -31,6 +31,7 @@ public interface IQueryHandler<in TQuery, TResponse> : IRequestHandler<TQuery, R
 Wtw.Application/
   DependencyInjection.cs                          # AddApplication()
   Abstractions/Messaging/                         # ICommand, ICommandHandler, IQuery, IQueryHandler
+  Abstractions/Behaviors/LoggingBehavior.cs       # log estruturado de cada command/query (pipeline MediatR)
   Comum/
     ApplicationErros.cs                           # NaoEncontrado(entidade, id)
     ErroValidacao.cs                              # Erro com falhas agrupadas por campo
@@ -135,9 +136,21 @@ Handlers MediatR (`INotificationHandler<TEvento>`), publicados pelo `UnitOfWork`
 - Handlers **não chamam `SaveChanges`**: alteram agregados rastreados, e o `UnitOfWork` persiste tudo junto.
 - Como `INotificationHandler` retorna `Task`, a única forma de abortar a operação é lançar exceção. A `FalhaEventoDominioException` carrega o `Erro` original. O `UnitOfWork` a captura, descarta as alterações e devolve `Result.Fail(erro)`, então **a exceção não sai da camada de infraestrutura**.
 
+## Log estruturado (`LoggingBehavior`)
+
+`IPipelineBehavior<TRequest, TResponse>` do MediatR, com restrição `where TResponse : Result`. Envolve todo command e query e registra, via `ILogger` (a Application não conhece o Serilog):
+
+| Situação | Nível | Mensagem e propriedades |
+|----------|-------|-------------------------|
+| Sucesso | Information | `{Requisicao} concluída em {DuracaoMs} ms` |
+| `ErroValidacao` | Warning | `{Requisicao} rejeitada por validação ... Campos: {CamposInvalidos}` (só os nomes dos campos, nunca os valores enviados) |
+| Outra falha | Warning | `{Requisicao} falhou ...: {ErroTipo} {ErroCodigo} - {ErroMensagem}` |
+
+Falhas de negócio são `Warning`, não `Error`: são respostas esperadas (4xx), não defeitos. Diferente da validação, este behavior não precisa de reflexão, porque só **lê** o `Result`, sem construir um.
+
 ## Registro
 
-`AddApplication()`: `AddMediatR(RegisterServicesFromAssembly)` registra os handlers de command, query e evento (inclusive internos), e `AddValidatorsFromAssembly(includeInternalTypes: true)` registra os validators.
+`AddApplication()`: `AddMediatR(RegisterServicesFromAssembly)` registra os handlers de command, query e evento (inclusive internos) e o `LoggingBehavior` (`AddOpenBehavior`), e `AddValidatorsFromAssembly(includeInternalTypes: true)` registra os validators.
 
 ## DTOs
 

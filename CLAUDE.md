@@ -23,7 +23,7 @@ As specs são a fonte da verdade. Se uma implementação precisar divergir, **at
 
 ## Stack
 
-- Back-end: **.NET 10** (C#), EF Core 10, SQL Server, MediatR 12.5 (CQRS e Domain Events), FluentValidation, xUnit
+- Back-end: **.NET 10** (C#), EF Core 10, SQL Server, MediatR 12.5 (CQRS e Domain Events), FluentValidation, Serilog, xUnit
 - Front-end: **Angular** (versão atual, standalone components), Bootstrap
 - Banco local via **Docker Compose** (SQL Server)
 
@@ -46,7 +46,7 @@ docker-compose.yml
 README.md
 ```
 
-Regra de dependência: **Domain não referencia outros projetos** (única dependência externa: `MediatR.Contracts`). Application não referencia Infrastructure nem Api. Controllers não acessam DbContext.
+Regra de dependência: **Domain não referencia outros projetos** (única dependência externa: `MediatR.Contracts`). Application não referencia Infrastructure nem Api. Endpoints da API não acessam DbContext nem repositórios.
 
 ## Convenções de código
 
@@ -59,9 +59,11 @@ Regra de dependência: **Domain não referencia outros projetos** (única depend
 - Value Objects: `readonly record struct` com construtor privado e fábrica `Criar(...)` que retorna `Result<T>`.
 - Domain Events herdam de `DomainEvent`, têm sufixo `DomainEvent` e ficam na pasta `Eventos/` do agregado. Handlers são `INotificationHandler<T>` do MediatR, na Application.
 - **CQRS**: cada caso de uso tem uma pasta própria em `Application/<Agregado>/<CasoDeUso>/`, com `XxxCommand`/`XxxQuery`, `XxxCommandHandler`/`XxxQueryHandler` e, se houver entrada a validar, `XxxCommandValidator`. Commands implementam `ICommand` ou `ICommand<TResponse>` (criação devolve só o `Guid`); queries implementam `IQuery<TResponse>`. Handlers e validators são `internal sealed`. A API usa apenas `ISender.Send(...)`.
+- **API (Minimal APIs)**: um arquivo por recurso em `Api/Endpoints/` (`MapXxxEndpoints` com `MapGroup`), handlers HTTP como métodos estáticos privados que convertem o `Result` com `ParaOk`/`ParaSemConteudo`/`ParaCriado`. Metadados de OpenAPI (`WithSummary`, `Produces`, `ProducesProblem`) em cada rota.
 - Métodos curtos, uma responsabilidade por classe, injeção por construtor (primary constructors em handlers).
 - Sem comentários óbvios; comente apenas o "porquê" de decisões não evidentes.
 - Métodos assíncronos com sufixo `Async` e `CancellationToken` propagado.
+- Logs: use `ILogger<T>` com *message templates* (`logger.LogInformation("{Requisicao} concluída", nome)`), nunca interpolação de string, para manter as propriedades estruturadas. Só a API conhece o Serilog. Não registre dados enviados pelo usuário (valores de campos).
 
 ## Comandos
 

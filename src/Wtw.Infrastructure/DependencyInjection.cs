@@ -20,7 +20,8 @@ public static class DependencyInjection
                                ?? throw new InvalidOperationException(
                                    $"Connection string '{NomeConnectionString}' não configurada.");
 
-        services.AddDbContext<WtwDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddDbContext<WtwDbContext>(options =>
+            options.UseSqlServer(connectionString, sqlServer => sqlServer.EnableRetryOnFailure()));
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IProdutoRepository, ProdutoRepository>();

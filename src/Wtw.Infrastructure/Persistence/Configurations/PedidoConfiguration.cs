@@ -19,8 +19,12 @@ internal sealed class PedidoConfiguration : IEntityTypeConfiguration<Pedido>
             .HasMaxLength(20)
             .IsRequired();
 
-        builder.Property(pedido => pedido.CriadoEmUtc).IsRequired();
-        builder.Property(pedido => pedido.AtualizadoEmUtc);
+        builder.Property(pedido => pedido.CriadoEmUtc)
+            .HasConversion(data => data, data => DateTime.SpecifyKind(data, DateTimeKind.Utc))
+            .IsRequired();
+
+        builder.Property(pedido => pedido.AtualizadoEmUtc)
+            .HasConversion(data => data, data => data.HasValue ? DateTime.SpecifyKind(data.Value, DateTimeKind.Utc) : data);
 
         builder.HasOne<Cliente>()
             .WithMany()

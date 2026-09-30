@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using Wtw.Application.Abstractions.Behaviors;
 
 namespace Wtw.Application;
 
@@ -9,7 +10,11 @@ public static class DependencyInjection
     {
         var assembly = typeof(DependencyInjection).Assembly;
 
-        services.AddMediatR(configuracao => configuracao.RegisterServicesFromAssembly(assembly));
+        services.AddMediatR(configuracao =>
+        {
+            configuracao.RegisterServicesFromAssembly(assembly);
+            configuracao.AddOpenBehavior(typeof(LoggingBehavior<,>));
+        });
         services.AddValidatorsFromAssembly(assembly, includeInternalTypes: true);
 
         return services;

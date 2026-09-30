@@ -21,7 +21,7 @@ src/
   Wtw.Domain           Entidades, Value Objects, Agregados, Domain Events, interfaces de repositório
   Wtw.Application      CQRS: commands, queries e seus handlers (MediatR), DTOs, validações, handlers de Domain Events
   Wtw.Infrastructure   EF Core, repositórios, UnitOfWork (publica os Domain Events), migrations e seed
-  Wtw.Api              Controllers, injeção de dependência, tratamento global de erros
+  Wtw.Api              Minimal APIs (endpoints por recurso), injeção de dependência, tratamento global de erros, logs
 tests/
   Wtw.Domain.Tests
   Wtw.Application.Tests
@@ -54,7 +54,28 @@ Em seguida, crie o banco usando uma das opções da seção [Banco de dados: cri
 
 ### 2. Back-end
 
-_(a definir)_
+Com o SQL Server rodando:
+
+```bash
+dotnet run --project src/Wtw.Api --launch-profile http
+```
+
+- API: `http://localhost:5000/api`
+- Documentação interativa (Scalar): `http://localhost:5000/scalar/v1`
+- Documento OpenAPI: `http://localhost:5000/openapi/v1.json`
+- Logs: console, e arquivo JSON em `src/Wtw.Api/logs/wtw-api-AAAAMMDD.json`
+
+Em `Development`, a API aplica as migrations pendentes ao iniciar, então basta o container do banco estar de pé; o banco `WtwPedidos` e os dados iniciais são criados automaticamente. Para desligar, use `Database:AplicarMigrationsNoStartup = false`.
+
+Exemplo de fluxo completo:
+
+```bash
+curl -X POST http://localhost:5000/api/pedidos -H "Content-Type: application/json" -d '{"clienteId":"0199a000-0000-7000-8000-000000000001","itens":[{"produtoId":"0199a000-0000-7000-8000-000000000105","quantidade":2}]}'
+```
+
+```bash
+curl -X POST http://localhost:5000/api/pedidos/{id}/confirmar
+```
 
 ### 3. Front-end
 
@@ -77,7 +98,7 @@ Para usar outra instância de SQL Server, defina a variável `WTW_CONNECTION_STR
 
 Execute [`scripts/create-database.sql`](scripts/create-database.sql) (idempotente, gerado a partir das migrations) em um banco `WtwPedidos` vazio, pelo SSMS, Azure Data Studio ou `sqlcmd`.
 
-**c) Automático ao iniciar a API** _(disponível após a etapa da API)_
+**c) Automático ao iniciar a API**
 
 Em ambiente `Development`, a API aplica as migrations pendentes no startup.
 
@@ -125,7 +146,11 @@ As regras complementares definidas durante o desenvolvimento estão em [`docs/sp
 - **Validação explícita no handler, não em pipeline behavior:** um behavior genérico precisaria construir `Result<T>.Fail` via reflexão. Com três commands validados, a chamada explícita é mais simples e visível.
 - **Handler base para transições de status:** confirmar, cancelar e finalizar compartilham `AlterarStatusPedidoCommandHandler<T>`, e cada handler concreto só declara a transição (`=> pedido.Confirmar()`).
 - **Result pattern em vez de exceções:** regras de negócio violadas retornam `Result` com um `Erro` tipado (validação, não encontrado, regra de negócio, conflito), e a API converte esse tipo no status HTTP correspondente.
-- **Erros padronizados em ProblemDetails (RFC 7807):** 400 para validação, 404 para recurso inexistente, 422 para regra de negócio, 409 para conflito de concorrência.
+- **Erros padronizados em ProblemDetails (RFC 7807):** 400 para validação (erros por campo em camelCase), 404 para recurso inexistente, 409 para conflito de concorrência, 422 para regra de negócio. Todas as respostas trazem `traceId`, e as de negócio trazem `codigo` (ex.: `Pedido.Cancelar`) para o front não depender do texto.
+- **Minimal APIs:** cada recurso tem um arquivo em `Endpoints/` com `MapGroup` e métodos estáticos de uma linha que montam o command ou a query e chamam o `ISender`. A conversão de `Result` para `IResult` (`ParaOk`, `ParaSemConteudo`, `ParaCriado`) fica num único arquivo de extensões, e os metadados de OpenAPI são declarados em cada rota.
+- **Validação toda no FluentValidation:** as mensagens de validação vêm dos validators, em português. Requisições ilegíveis (JSON malformado, enum inválido) não viram exceção: respondem 400 "Requisição inválida" via `UseStatusCodePages`, sem sujar o log de erros.
+- **Datas sempre em UTC:** a leitura do EF marca as datas como UTC, e a API as serializa com `Z`.
+- **Logs estruturados com Serilog:** console legível para desenvolvimento e arquivo em JSON compacto (`src/Wtw.Api/logs/`) com uma linha por requisição HTTP e uma por command/query (duração, tipo e código do erro). O `` de cada evento é o mesmo `traceId` devolvido no `ProblemDetails`, o que liga um erro visto no front ao log. A Application loga via `ILogger`, sem conhecer o Serilog.
 - **Transições de status como ações** (`POST /pedidos/{id}/confirmar`), por serem comandos de negócio com efeitos colaterais.
 
 ## Melhorias futuras
