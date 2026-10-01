@@ -19,13 +19,17 @@ public sealed class PedidoItensTests
     [Fact]
     public void Criar_ComListaNula_DeveRetornarFalha_RN01()
     {
-        Pedido.Criar(PedidoTeste.ClienteId, null).IsFailure.ShouldBeTrue();
+        var resultado = Pedido.Criar(PedidoTeste.ClienteId, null);
+        resultado.IsFailure.ShouldBeTrue();
+        resultado.Erro.Mensagem.ShouldBe(PedidoErros.SemItens.Mensagem);
     }
 
     [Fact]
     public void Criar_SemCliente_DeveRetornarFalha()
     {
-        Pedido.Criar(Guid.Empty, [(ProdutoTeste.Criar(), 1)]).IsFailure.ShouldBeTrue();
+        var resultado = Pedido.Criar(Guid.Empty, [(ProdutoTeste.Criar(), 1)]);
+        resultado.IsFailure.ShouldBeTrue();
+        resultado.Erro.Mensagem.ShouldBe(PedidoErros.ClienteObrigatorio.Mensagem);
     }
 
     [Fact]
@@ -47,7 +51,7 @@ public sealed class PedidoItensTests
         var resultado = Pedido.Criar(PedidoTeste.ClienteId, [(produto, 4)]);
 
         resultado.IsFailure.ShouldBeTrue();
-        resultado.Erro!.Mensagem.ShouldBe("Estoque insuficiente para o produto 'Webcam HD'. Disponível: 3, solicitado: 4.");
+        resultado.Erro.Mensagem.ShouldBe(PedidoErros.EstoqueInsuficiente(produto, 4).Mensagem);
     }
 
     [Fact]
@@ -63,7 +67,9 @@ public sealed class PedidoItensTests
     {
         var pedido = PedidoTeste.Criar();
 
-        pedido.AdicionarItem(ProdutoTeste.Criar("Mouse"), quantidade).IsFailure.ShouldBeTrue();
+        var resultado = pedido.AdicionarItem(ProdutoTeste.Criar("Mouse"), quantidade);
+        resultado.IsFailure.ShouldBeTrue();
+        resultado.Erro.Mensagem.ShouldBe(PedidoErros.QuantidadeInvalida.Mensagem);
     }
 
     [Fact]
@@ -87,6 +93,7 @@ public sealed class PedidoItensTests
         var resultado = pedido.AdicionarItem(produto, 2);
 
         resultado.IsFailure.ShouldBeTrue();
+        resultado.Erro!.Mensagem.ShouldBe(PedidoErros.EstoqueInsuficiente(produto, 4).Mensagem);
         pedido.Itens.Single().Quantidade.ShouldBe(2);
     }
 
@@ -128,9 +135,12 @@ public sealed class PedidoItensTests
     [Fact]
     public void ValorTotal_DeveSerASomaDosSubtotais()
     {
+        var produto1 = ProdutoTeste.Criar("Webcam", preco: 159m, estoque: 10);
+        var produto2 = ProdutoTeste.Criar("Teclado", preco: 349.90m, estoque: 10);
+
         var pedido = PedidoTeste.Criar(
-            (ProdutoTeste.Criar("Webcam", preco: 159m, estoque: 10), 2),
-            (ProdutoTeste.Criar("Teclado", preco: 349.90m, estoque: 10), 1));
+            (produto1, 2), (produto2, 1)
+        );
 
         pedido.ValorTotal.ShouldBe(667.90m);
     }

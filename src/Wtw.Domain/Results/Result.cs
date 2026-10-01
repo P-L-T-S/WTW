@@ -1,4 +1,6 @@
-﻿namespace Wtw.Domain.Results;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Wtw.Domain.Results;
 
 public class Result
 {
@@ -7,10 +9,11 @@ public class Result
         Success = success;
         Erro = erro;
     }
-
+    [MemberNotNullWhen(false, nameof(Erro))]
     public bool Success { get; }
-    public Erro? Erro { get; init; }
-
+    public Erro? Erro { get; }
+    
+    [MemberNotNullWhen(true, nameof(Erro))]
     public bool IsFailure => !Success;
 
     public static Result Ok() => new Result(true);
